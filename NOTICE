@@ -1,0 +1,83 @@
+DMXROUTER — THIRD-PARTY NOTICES
+================================
+
+This product includes software developed by third parties. Their licenses and
+attribution notices are listed below.
+
+
+──────────────────────────────────────────────────────────────────────────────
+Qt Framework
+──────────────────────────────────────────────────────────────────────────────
+
+Copyright (C) The Qt Company Ltd.
+https://www.qt.io
+
+This application uses Qt 6, which is licensed under the
+GNU Lesser General Public License v3 (LGPL v3).
+
+Qt is dynamically linked and has not been modified. In accordance with the
+LGPL v3, users are entitled to obtain the Qt source code from:
+
+    https://code.qt.io
+
+and to re-link this application against a modified version of the Qt libraries.
+
+Full text of the LGPL v3: https://www.gnu.org/licenses/lgpl-3.0.html
+Full text of the GPL v3:  https://www.gnu.org/licenses/gpl-3.0.html
+
+
+──────────────────────────────────────────────────────────────────────────────
+Art-Net™
+──────────────────────────────────────────────────────────────────────────────
+
+Art-Net™ is designed by and is Copyright Artistic Licence Holdings Ltd.
+https://art-net.org.uk
+
+This software implements the Art-Net 4 protocol specification. The Art-Net
+protocol is used under the terms set out in the Art-Net specification document.
+Art-Net is a trademark of Artistic Licence Holdings Ltd.
+
+
+──────────────────────────────────────────────────────────────────────────────
+ANSI E1.31 — sACN (Streaming ACN)
+──────────────────────────────────────────────────────────────────────────────
+
+ANSI E1.31-2018 — Entertainment Technology: Lightweight Streaming Protocol for
+Transport of DMX512 Using ACN.
+
+Published by ESTA (Entertainment Services and Technology Association).
+https://www.esta.org
+
+
+──────────────────────────────────────────────────────────────────────────────
+ANSI E1.20 — RDM (Remote Device Management)
+──────────────────────────────────────────────────────────────────────────────
+
+ANSI E1.20-2010 — Entertainment Technology: Remote Device Management over
+DMX512 Networks.
+
+Published by ESTA (Entertainment Services and Technology Association).
+https://www.esta.org
+
+
+──────────────────────────────────────────────────────────────────────────────
+ANSI E1.33 — RDMNet / LLRP
+──────────────────────────────────────────────────────────────────────────────
+
+ANSI E1.33 — Entertainment Technology: Message Transport Infrastructure for
+ANSI E1.20 (RDMNet) and Low-Level Recovery Protocol (LLRP).
+
+Published by ESTA (Entertainment Services and Technology Association).
+https://www.esta.org
+
+
+──────────────────────────────────────────────────────────────────────────────
+DMX512
+──────────────────────────────────────────────────────────────────────────────
+
+ANSI E1.11-2008 — Entertainment Technology: USITT DMX512-A, Asynchronous
+Serial Digital Data Transmission Standard for Controlling Lighting Equipment
+and Accessories.
+
+Published by ESTA (Entertainment Services and Technology Association).
+https://www.esta.org

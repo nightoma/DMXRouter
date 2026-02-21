@@ -1,0 +1,44 @@
+DMXROUTER PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026. All rights reserved.
+
+This software and associated documentation files (the "Software") are proprietary
+and confidential. No part of this Software may be reproduced, distributed,
+modified, or transmitted in any form or by any means — electronic, mechanical,
+photocopying, recording, or otherwise — without the prior written permission of
+the copyright holder.
+
+RESTRICTIONS
+
+1. You may not copy, modify, merge, publish, distribute, sublicense, or sell
+   copies of the Software or any derivative works thereof.
+
+2. You may not reverse-engineer, decompile, or disassemble the Software, except
+   to the extent that such activity is expressly permitted by applicable law.
+
+3. You may not remove or alter any proprietary notices, labels, or marks on the
+   Software.
+
+DISCLAIMER OF WARRANTIES
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+THIRD-PARTY COMPONENTS
+
+This Software uses Qt (https://www.qt.io), which is licensed under the
+GNU Lesser General Public License v3 (LGPL v3). The Qt libraries are dynamically
+linked and are not modified. In accordance with the LGPL v3, users who receive a
+binary distribution of this Software are entitled to:
+
+  - Obtain the corresponding Qt source code from https://code.qt.io
+  - Re-link this application against a modified version of the Qt libraries
+
+A full copy of the LGPL v3 license is available in the NOTICE file and at:
+https://www.gnu.org/licenses/lgpl-3.0.html
+
+Additional third-party attributions are listed in the NOTICE file.
