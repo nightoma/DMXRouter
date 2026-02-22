@@ -2,23 +2,25 @@
 
 **Professional DMX512 lighting control router for live entertainment and architectural installations.**
 
-DMXRouter is a high-performance application written in C++ with Qt6 that handles DMX512 data routing, merging, and show management across the major industry protocols. Designed for production environments where reliability and sub-millisecond timing are non-negotiable.
+DMXRouter is a high-performance, cross-platform application written in C++ with Qt6 that handles DMX512 data routing, merging, and show management across the major industry protocols. Designed for production environments where reliability and sub-millisecond timing are non-negotiable.
 
 ---
 
 ## Features at a Glance
 
 - **Multi-protocol routing** — Art-Net 4, sACN (E1.31 2018), with full cross-protocol bridging
+- **Internal routing** — cascade process engines for multi-stage merge topologies without physical loopback
 - **Universe merge engine** — 8 merge modes including HTP, LTP, Backup, X-Fade, Switch, and Custom per-channel policy
 - **Show cue recording & playback** — capture, sequence, and automate DMX shows with crossfade transitions and DMX remote triggering
 - **RDM device management** — full E1.20 with device discovery, parameter control, and sensor monitoring
 - **RDMNet / LLRP** — E1.33 broker connection and LLRP device discovery
 - **Channel-level patching** — per-channel remap, scale (0–200%), min/max limits, CSV import/export
 - **Network discovery** — live Art-Net node and sACN source discovery with remote node configuration
-- **VLAN management** — Windows Hyper-V virtual switch management for production network segmentation
+- **VLAN management** — cross-platform virtual adapter management for production network segmentation (Windows Hyper-V, Linux ip/8021q, macOS ifconfig)
 - **Real-time statistics** — per-interface and per-universe throughput metrics with live event log
+- **Universe monitor** — real-time DMX data viewer with per-interface filtering for multi-NIC environments
 - **Profile manager** — save and recall complete configurations
-- **~27,000 lines of production C++** — zero compiler warnings with strict flags (`-Wall -Wextra -Wpedantic`)
+- **~30,000 lines of production C++** — zero compiler warnings with strict flags (`-Wall -Wextra -Wpedantic`)
 
 ---
 
@@ -26,6 +28,7 @@ DMXRouter is a high-performance application written in C++ with Qt6 that handles
 
 - [Architecture](#architecture)
 - [Protocol Support](#protocol-support)
+- [Internal Routing](#internal-routing)
 - [Merge Engine](#merge-engine)
 - [Show Cue System](#show-cue-system)
 - [RDM & RDMNet](#rdm--rdmnet)
@@ -33,6 +36,7 @@ DMXRouter is a high-performance application written in C++ with Qt6 that handles
 - [Network Discovery](#network-discovery)
 - [VLAN Management](#vlan-management)
 - [Statistics & Logging](#statistics--logging)
+- [Universe Monitor](#universe-monitor)
 - [Configuration](#configuration)
 - [Typical Use Cases](#typical-use-cases)
 - [License](#license)
@@ -61,7 +65,7 @@ DMXRouter runs on a **single-threaded event-loop architecture** driven by Qt's e
 Key design invariants:
 
 - Per-universe sequence counters (Art-Net and sACN) — compliant with Art-Net 4 §ArtDmx and E1.31 §6.2.6
-- Output rate limiter (token bucket at 44 fps / 22.7 ms) — prevents receiver overload
+- Output rate limiter (token bucket at 44 fps / 22.7 ms) — prevents receiver overload per E1.31 §6.6.1, with dirty-flag optimization to skip identical frames and keep-alive emission every ~850 ms
 - Socket send/receive buffers at 2 MB — absorbs burst traffic from 40+ simultaneous universes
 - Defensive bounds checking throughout — stale indices and corrupted fade states produce log warnings, never visible artifacts on a live rig
 
@@ -75,6 +79,7 @@ Key design invariants:
 - Remote node configuration via ArtAddress and ArtIpProg
 - Multi-bind node merging (combines replies from the same IP across ports)
 - Correct per-universe sequence numbering (1–255, wrapping, independent per universe)
+- Paced ArtAddress command queue (20 ms between packets) to prevent node RX buffer overflow on multi-port configurations
 
 ### sACN — ANSI E1.31 2018
 - Full multicast and unicast support
@@ -82,12 +87,23 @@ Key design invariants:
 - **Universe Synchronization** — E1.31 Extended Sync packets (vector 0x00000001) for glitch-free multi-universe refresh on LED walls and large installations
 - Universe Discovery (10-second cycle with pagination)
 - Stream termination handling
+- Protocol-aware sequence validation (0 is a valid wrap value in sACN, unlike Art-Net where seq 0 means "disabled")
 
 ### Cross-protocol bridging
 Any input protocol can be routed to any output protocol. Art-Net → sACN, sACN → Art-Net, or same-protocol universe remapping — all configurable per route.
 
-### Internal Routing (Process Engine Chaining)
-The output of one merge engine can be fed as the input to another, enabling cascading merge topologies. A recursion guard (depth 4) prevents infinite loops.
+---
+
+## Internal Routing
+
+The output of one process engine can be fed as the input to another, enabling cascading merge topologies without requiring physical network loopback.
+
+- **Engine-to-engine selection** — the merge editor lists all available engines with their output targets; selecting one automatically links the routing
+- **Per-engine sender keys** — each engine's internal output uses a unique cache key, preventing collisions when multiple engines share the same output universe
+- **Keep-alive propagation** — when a source drops, the upstream engine's keep-alive data continues to feed downstream engines, preventing cascading failures through the routing chain
+- **Failsafe hold propagation** — hold-last-state behaviour propagates correctly through internal routing chains
+- **Physical loopback** — for same-interface routing scenarios where the "OWN" checkbox is enabled, data is injected directly without requiring an external network path
+- **Recursion guard** — maximum depth of 4 prevents infinite loops in circular topologies
 
 ---
 
@@ -115,6 +131,7 @@ Each merge engine accepts **up to 4 inputs** and produces one merged output. Up 
 - **Startup buffer** — send a stored snapshot while waiting for live sources to appear
 - **Failsafe** — configurable behaviour when all sources time out (hold last / go to black / send preset)
 - **Channel patch** — per-channel remap applied after merge, before transmission
+- **Enable / disable** — engines can be toggled on and off without losing their configuration
 
 ---
 
@@ -156,7 +173,7 @@ DMXRouter includes a complete show programming and playback engine for automated
 - Read 19+ PIDs: device info, manufacturer, model, personality list, DMX address, identify state, sensor definitions and values, lamp state, lamp on mode, product detail, supported parameters, and more
 - 3-second transaction timeout with automatic retry
 - Full device cache with parameter persistence
-- Interactive device tree in the **🎛 RDM** tab
+- Interactive device tree in the **🎛 RDM** tab, sorted by DMX start address with device counts per port, DMX address ranges, and last-seen timestamps with stale-device highlighting
 
 ### RDMNet — ANSI E1.33 / LLRP
 - **LLRP discovery** — multicast probe on 239.255.250.133 and 239.255.250.134 with known-UID suppression
@@ -185,9 +202,11 @@ Full channel-level remapping applied after merge and before output.
 
 The **🔍 Discovery** tab shows all Art-Net nodes and sACN sources visible on the network in real time.
 
-**Art-Net nodes:** short name, long name, firmware version, IP, port count, active universes. Remote configuration via ArtAddress and ArtIpProg directly from the UI. Nodes removed 60 seconds after last reply.
+**Art-Net nodes:** short name, long name, firmware version, IP, port count, active universes. Remote configuration via ArtAddress and ArtIpProg directly from the UI. Dynamic port controls adapt to the actual port count reported by each node, with per-port universe display, merge mode, direction, RDM enable, output style, and protocol selection. Nodes removed 60 seconds after last reply.
 
 **sACN sources:** source name, CID, IP, universe list. Sources removed 15 seconds after last packet.
+
+**Node configuration** includes failsafe mode control (hold last state, all off, all full, playback scene, record scene) with intelligent detection of node capabilities — commands are sent even when nodes don't advertise support, with a clear tooltip advisory.
 
 ArtPoll is **manually triggered** via toolbar button to avoid continuous background traffic on production networks.
 
@@ -195,16 +214,26 @@ ArtPoll is **manually triggered** via toolbar button to avoid continuous backgro
 
 ## VLAN Management
 
-On Windows 10/11 Pro or Enterprise with Hyper-V, DMXRouter can create and manage virtual network adapters tagged to specific VLANs — equivalent to the Group/Trunk system found in professional lighting network hardware.
+DMXRouter provides cross-platform virtual network adapter management for production network segmentation.
 
+### Windows (Hyper-V)
 - Create / destroy Hyper-V Virtual Switch via asynchronous PowerShell
 - Add and remove VLANs with configurable IDs and names
 - Colour-coded VLAN table
 - Adapter filtering hides system adapters (Default Switch, management NICs)
 - Network diagnostics panel
-- On non-Windows platforms, a clear advisory guides using native OS tools
+- Requires: Windows administrator privileges and Hyper-V feature enabled
 
-> Requires: Windows administrator privileges and Hyper-V feature enabled.
+### Linux
+- VLAN creation via `ip link` with 802.1Q tagging (`8021q` kernel module)
+- IP address assignment and interface lifecycle management
+- POSIX-compatible commands (no GNU-only dependencies)
+
+### macOS
+- VLAN creation via `ifconfig` with BSD-native `vlan` interface naming
+- Automatic NIC configuration and IP assignment
+
+> On all platforms, a clear advisory guides the user when prerequisites are not met.
 
 ---
 
@@ -224,11 +253,24 @@ The **📈 Stats & Log** tab provides live operational visibility.
 
 ---
 
+## Universe Monitor
+
+The **📡 Monitor** tab provides a real-time view of all DMX data flowing through the system.
+
+- **Per-interface filtering** — dropdown populated dynamically as interfaces appear, allowing inspection of specific network paths when the same universe arrives on multiple NICs or VLANs
+- **Direction filter** — isolate input-only or output-only traffic
+- **Protocol filter** — view Art-Net, sACN, or both
+- **Grid view** — 32×16 channel grid with colour-coded DMX values
+- **Active channel count** — shows how many channels are above zero
+- **VLAN-friendly naming** — long adapter names like `DMXRouter_VLAN200` are automatically abbreviated to `VLAN 200` for readability
+
+---
+
 ## Configuration
 
-All settings are saved to a single JSON file via **File → Save Config** (Ctrl+S) and restored with **File → Load Config** (Ctrl+O). The file includes: routing table, merge engine configurations, channel patches, show cues, VLAN settings, and discovery preferences.
+All settings are saved to a single JSON file via **File → Save Config** (Ctrl+S) and restored with **File → Load Config** (Ctrl+O). The file includes: routing table, merge engine configurations, channel patches, show cues, VLAN settings, and discovery preferences. The application tracks unsaved changes and prompts on close.
 
-**Profile Manager** allows saving named snapshots of the complete configuration for quick recall during productions.
+**Profile Manager** allows saving named snapshots of the complete configuration for quick recall during productions. Up to 40 profiles stored on disk.
 
 Example configuration excerpt:
 
@@ -275,11 +317,13 @@ Example configuration excerpt:
 
 **X-Fade / media server handoff** — crossfade between a lighting desk and a media server output using a single DMX fader as the blend control.
 
+**Multi-stage processing** — chain process engines using internal routing: first engine merges two consoles via HTP, second engine crossfades the result with a media server, third engine applies a master dimmer. No physical loopback required.
+
 **Show automation** — record cue snapshots during rehearsal and play them back during the performance with configurable crossfade times, triggered manually, on a timer, or from a DMX control channel on the desk.
 
 **Fixture repatching** — remap RGB → BGR for fixtures wired in a non-standard order, or offset a dimmer rack that starts at an unusual DMX address, without touching the console patch.
 
-**Network segmentation** — receive on a production VLAN, output on a separate lighting VLAN, using DMXRouter as the bridge between segments.
+**Network segmentation** — receive on a production VLAN, output on a separate lighting VLAN, using DMXRouter as the bridge between segments. Cross-platform VLAN management makes this possible on Windows, Linux, and macOS.
 
 **Large LED installation** — use sACN Universe Synchronization to ensure all universes are released simultaneously at receiver endpoints, eliminating visible tearing across a multi-universe LED wall.
 
@@ -295,4 +339,4 @@ This application uses **Qt 6**, licensed under the LGPL v3. Qt is dynamically li
 
 ---
 
-*DMXRouter v1.0 — Built for the stage.*
+*DMXRouter v1.1.0 — Built for the stage.*
