@@ -48,18 +48,19 @@ DMXRouter is a high-performance, cross-platform application written in C++ with 
 DMXRouter runs on a **single-threaded event-loop architecture** driven by Qt's event system. This is a deliberate design decision: crossfade calculations and merge operations complete in microseconds per tick even at high universe counts, while a multi-threaded worker queue would introduce latency through queued connections. The result is consistent sub-millisecond output timing — critical for live shows.
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      Qt Event Loop                      │
-├──────────────┬──────────────┬─────────────┬────────────┤
-│  UDPTransport│  MergeEngine │ShowCueEngine│DiscoveryMgr│
-│  (Art-Net /  │  (8 modes,   │(cue record/ │(Art-Net /  │
-│   sACN RX/TX)│  512 routes) │ playback)   │ sACN scan) │
-├──────────────┴──────────────┴─────────────┴────────────┤
-│  RDMManager │ RDMNetManager │ PatchManager│ StatsEngine │
-│  (E1.20 RDM)│ (E1.33/LLRP) │ (ch remap)  │ (metrics)  │
-├─────────────┴───────────────┴─────────────┴────────────┤
-│              Qt6 GUI (MainWindow + Widgets)             │
-└─────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│                       Qt Event Loop                       │
+├───────────────┬──────────────┬──────────────┬─────────────┤
+│ UDPTransport  │ MergeEngine  │ ShowCueEngine│ DiscoveryMgr│
+│ (Art-Net /    │ (8 modes,    │ (cue record/ │ (Art-Net /  │
+│  sACN RX/TX)  │  512 routes) │  playback)   │  sACN scan) │
+├───────────────┼──────────────┼──────────────┼─────────────┤
+│ RDMManager    │ RDMNetManager│ PatchManager │ StatsEngine │
+│ (E1.20 RDM)   │ (E1.33/LLRP) │ (ch remap)   │ (metrics)   │
+├───────────────┴──────────────┴──────────────┴─────────────┤
+│              Qt6 GUI (MainWindow + Widgets)               │
+└───────────────────────────────────────────────────────────┘
+
 ```
 
 Key design invariants:
