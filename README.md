@@ -15,12 +15,15 @@ DMXRouter is a high-performance, cross-platform application written in C++ with 
 - **RDM device management** — full E1.20 with device discovery, parameter control, sensor monitoring, fixture templates, and operating hours tracking
 - **RDMNet / LLRP** — E1.33 broker connection and LLRP device discovery
 - **Channel-level patching** — per-channel remap, scale (0–200%), min/max limits, CSV import/export
+- **Channel history** — oscilloscope-style real-time waveform display for any DMX channel
 - **Network discovery** — live Art-Net node and sACN source discovery with remote node configuration
 - **VLAN management** — cross-platform virtual adapter management for production network segmentation (Windows Hyper-V, Linux ip/8021q, macOS ifconfig)
 - **Real-time statistics** — per-interface and per-universe throughput metrics with live event log
 - **Universe monitor** — real-time DMX data viewer with per-interface filtering for multi-NIC environments
-- **Profile manager** — save and recall complete configurations
-- **~30,000 lines of production C++** — zero compiler warnings with strict flags (`-Wall -Wextra -Wpedantic`)
+- **Profile manager** — save and recall complete configurations, with optional startup profile auto-load
+- **Update checker** — automatic new version detection via GitHub Releases
+- **Cross-platform** — Windows, Linux and macOS from a single codebase
+- **~35,500 lines of production C++** — zero compiler warnings with strict flags (`-Wall -Wextra -Wpedantic`)
 
 ---
 
@@ -33,12 +36,14 @@ DMXRouter is a high-performance, cross-platform application written in C++ with 
 - [Show Cue System](#show-cue-system)
 - [RDM & RDMNet](#rdm--rdmnet)
 - [Channel Patching](#channel-patching)
+- [Channel History](#channel-history)
 - [Network Discovery](#network-discovery)
 - [VLAN Management](#vlan-management)
 - [Statistics & Logging](#statistics--logging)
 - [Universe Monitor](#universe-monitor)
 - [Configuration](#configuration)
 - [Typical Use Cases](#typical-use-cases)
+- [Installation](#installation)
 - [License](#license)
 
 ---
@@ -68,6 +73,7 @@ Key design invariants:
 - Per-universe sequence counters (Art-Net and sACN) — compliant with Art-Net 4 §ArtDmx and E1.31 §6.2.6
 - Output rate limiter (token bucket at 44 fps / 22.7 ms) — prevents receiver overload per E1.31 §6.6.1, with dirty-flag optimization to skip identical frames and keep-alive emission every ~850 ms
 - Socket send/receive buffers at 2 MB — absorbs burst traffic from 40+ simultaneous universes
+- Packet rate calculations normalized by actual elapsed time — eliminates jitter from QTimer imprecision under event loop load
 - Defensive bounds checking throughout — stale indices and corrupted fade states produce log warnings, never visible artifacts on a live rig
 
 ---
@@ -213,6 +219,21 @@ Full channel-level remapping applied after merge and before output.
 - **Presets** — save and recall patch configurations
 - **CSV import / export** — compatible with standard patch sheets
 - **Mini-map** — 32×16 visual overview of the complete 512-channel patch
+- **Fixed-width table** — columns sized to fit numeric content with no horizontal scrolling
+
+---
+
+## Channel History
+
+The universe monitor includes an **oscilloscope-style waveform display** for detailed channel-level analysis.
+
+- **Step-style DMX trace** with gradient fill, matching the discrete nature of DMX values
+- **Selectable time windows** — 5s, 10s, 30s, or 60s of history
+- **Pause / resume** — freeze the view for inspection without losing incoming data
+- **Hover crosshair** — shows exact value and timestamp at any point on the waveform
+- **Min / max band** — dashed indicators show the value range over the visible window
+- **30 FPS rendering** with smooth continuous scrolling
+- **Sample deduplication** — stable channels consume minimal memory regardless of observation time
 
 ---
 
@@ -220,7 +241,7 @@ Full channel-level remapping applied after merge and before output.
 
 The **🔍 Discovery** tab shows all Art-Net nodes and sACN sources visible on the network in real time.
 
-**Art-Net nodes:** short name, long name, firmware version, IP, port count, active universes. Remote configuration via ArtAddress and ArtIpProg directly from the UI. Dynamic port controls adapt to the actual port count reported by each node, with per-port universe display, merge mode, direction, RDM enable, output style, and protocol selection. Nodes removed 60 seconds after last reply.
+**Art-Net nodes:** short name, long name, firmware version, IP, port count, active universes. Remote configuration via ArtAddress and ArtIpProg directly from the UI. Dynamic port controls adapt to the actual port count reported by each node, with per-port universe display, merge mode, direction, RDM enable, output style, and protocol selection. Art-Net universes show absolute universe numbers alongside the standard Net.Subnet.Universe notation. Nodes removed 60 seconds after last reply.
 
 **sACN sources:** source name, CID, IP, universe list. Sources removed 15 seconds after last packet.
 
@@ -259,9 +280,9 @@ DMXRouter provides cross-platform virtual network adapter management for product
 
 The **📈 Stats & Log** tab provides live operational visibility.
 
-**Metrics dashboard** — 8 live cards: Packets In/s, Packets Out/s, Total In, Total Out, Active Universes, Error Count, Sequence Errors, Uptime. Colour-coded green / red / grey by state.
+**Metrics dashboard** — 8 live cards: Packets In/s, Packets Out/s, Total In, Total Out, Active Universes, Error Count, Sequence Errors, Uptime. Colour-coded green / red / grey by state. Packet rates are normalized by actual elapsed time to eliminate jitter under load.
 
-**Throughput chart** — rolling 2-minute history (120 snapshots), rendered with QPainter. Cyan for inbound, green for outbound, semi-transparent fill, auto-scaling Y axis.
+**Throughput chart** — rolling 2-minute history (120 snapshots), rendered with QPainter. Cyan for inbound, green for outbound, semi-transparent fill, auto-scaling Y axis with smooth decay to prevent visual jumps on scale changes.
 
 **Per-interface breakdown** — packet counts, Art-Net / sACN protocol split, error totals.
 
@@ -278,8 +299,10 @@ The **📡 Monitor** tab provides a real-time view of all DMX data flowing throu
 - **Per-interface filtering** — dropdown populated dynamically as interfaces appear, allowing inspection of specific network paths when the same universe arrives on multiple NICs or VLANs
 - **Direction filter** — isolate input-only or output-only traffic
 - **Protocol filter** — view Art-Net, sACN, or both
-- **Grid view** — 32×16 channel grid with colour-coded DMX values
+- **Grid view** — 32×16 channel grid with colour-coded DMX values and amber selection highlight
+- **Absolute universe display** — Art-Net universes show `0.1.0 (17)` with 1-based absolute numbering
 - **Active channel count** — shows how many channels are above zero
+- **Channel history** — click any channel to open the oscilloscope waveform view
 - **VLAN-friendly naming** — long adapter names like `DMXRouter_VLAN200` are automatically abbreviated to `VLAN 200` for readability
 
 ---
@@ -288,7 +311,11 @@ The **📡 Monitor** tab provides a real-time view of all DMX data flowing throu
 
 All settings are saved to a single JSON file via **File → Save Config** (Ctrl+S) and restored with **File → Load Config** (Ctrl+O). The file includes: routing table, merge engine configurations, channel patches, show cues, VLAN settings, and discovery preferences. The application tracks unsaved changes and prompts on close.
 
-**Profile Manager** allows saving named snapshots of the complete configuration for quick recall during productions. Up to 40 profiles stored on disk.
+**Profile Manager** allows saving named snapshots of the complete configuration for quick recall during productions. Up to 40 profiles stored on disk. A profile can be pinned as **⭐ Startup Profile** to load automatically on launch instead of the last session.
+
+**Session persistence** — enabled network interfaces, VLANs, and cue recorder state are saved independently of process engines and restored on every launch, even with no engines configured.
+
+**Update checker** — automatically checks GitHub for new releases at startup (with a 3-second delay). Manual check available in the Help menu. Platform-specific asset detection for direct download links.
 
 Example configuration excerpt:
 
@@ -308,16 +335,6 @@ Example configuration excerpt:
       ],
       "master": 100,
       "failsafe": "hold"
-    }
-  ],
-  "routes": [
-    {
-      "name": "Main to sACN",
-      "input":  { "protocol": "sacn",   "universe": 1 },
-      "output": { "protocol": "artnet", "net": 0, "subnet": 0, "universe": 0 },
-      "output_interface": "eth0:10.0.0.1",
-      "sacn_sync_address": 0,
-      "enabled": true
     }
   ]
 }
@@ -349,6 +366,38 @@ Example configuration excerpt:
 
 ---
 
+## Installation
+
+### Windows
+Download and run `DMXRouter-Setup.exe`. All dependencies are included.
+
+### Linux
+Download the `DMXRouter` binary from the [Releases](https://github.com/fiverecords/DMXRouter/releases) page. Qt6 runtime libraries are required:
+
+```bash
+# Ubuntu / Debian
+sudo apt install libqt6core6 libqt6gui6 libqt6widgets6 libqt6network6
+
+# Fedora
+sudo dnf install qt6-qtbase
+
+# Arch
+sudo pacman -S qt6-base
+```
+
+Then run:
+```bash
+chmod +x DMXRouter
+./DMXRouter
+```
+
+VLAN management requires root privileges (`sudo ./DMXRouter`) and the `vlan` kernel module (`sudo modprobe 8021q`).
+
+### macOS
+Download the `.app` bundle from the [Releases](https://github.com/fiverecords/DMXRouter/releases) page. Qt6 frameworks are bundled inside the application. On first launch you may need to allow it in System Settings → Privacy & Security.
+
+---
+
 ## License
 
 Copyright (c) 2026. All rights reserved.
@@ -359,4 +408,4 @@ This application uses **Qt 6**, licensed under the LGPL v3. Qt is dynamically li
 
 ---
 
-*DMXRouter v1.2.0 — Built for the stage.*
+*DMXRouter v1.3.0 — Built for the stage.*
