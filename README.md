@@ -56,7 +56,7 @@ DMXRouter runs on a **single-threaded event-loop architecture** driven by Qt's e
 │  sACN RX/TX)  │  512 routes) │  playback)   │  sACN scan) │
 ├───────────────┼──────────────┼──────────────┼─────────────┤
 │ RDMManager    │ RDMNetManager│ PatchManager │ StatsEngine │
-│ (E1.20 RDM)  │ (E1.33/LLRP) │ (ch remap)   │ (metrics)   │
+│ (E1.20 RDM)   │ (E1.33/LLRP) │ (ch remap)   │ (metrics)   │
 ├───────────────┴──────────────┴──────────────┴─────────────┤
 │              Qt6 GUI (MainWindow + Widgets)               │
 └───────────────────────────────────────────────────────────┘
