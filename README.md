@@ -449,4 +449,4 @@ This application uses **Qt 6**, licensed under the LGPL v3. Qt is dynamically li
 
 ---
 
-*DMXRouter v1.4.1 — Built for the stage.*
+*DMXRouter v1.4.2 — Built for the stage.*
